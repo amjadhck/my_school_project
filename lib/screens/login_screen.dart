@@ -1,8 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:my_school_project/screens/test_page.dart';
-import 'package:my_school_project/widgets/buttons.dart';
-import 'package:my_school_project/widgets/text_fields.dart';
+import 'package:my_school_project/widgets/class_modal.dart';
+import 'package:my_school_project/widgets/constances.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -18,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   //editingcontroller
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  //final _auth = FirebaseAuth.instance;
+  final _auth = FirebaseAuth.instance;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,23 +41,75 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: <Widget>[
                       SizedBox(
                         height: 200,
-                        child: Image.asset("assets/logo.png"),
+                        width: 200,
+                        child: Image.asset("assets/school_logo.png"),
                       ),
-                      const SizedBox(
-                        height: 45,
+                      const VerticalHight(value: 45),
+                      TextFormField(
+                        autofocus: false,
+                        controller: emailController,
+                        onSaved: (value) {
+                          emailController.text = value!;
+                        },
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return ("Plese enter your email");
+                          } else if (!RegExp(
+                                  "^[a-zA-Z0-9+_.-]+@[a-zA-Z.-]+.[a-z]")
+                              .hasMatch(value)) {
+                            return ("Enter a valid email");
+                          } else {
+                            return null;
+                          }
+                        },
+                        textInputAction: TextInputAction.next,
+                        decoration: kemaildecoration,
                       ),
-                      emailField,
-                      const SizedBox(
-                        height: 25,
+                      const VerticalHight(value: 25),
+                      TextFormField(
+                        obscureText: true,
+                        autofocus: false,
+                        controller: passwordController,
+                        onSaved: (value) {
+                          passwordController.text = value!;
+                        },
+                        validator: (value) {
+                          RegExp regex = RegExp(r'^.{6,}$');
+                          if (value!.isEmpty) {
+                            return ("Password required");
+                          } else if (!regex.hasMatch(value)) {
+                            return ("Enter a valid password with min 6 charecters");
+                          }
+                        },
+                        textInputAction: TextInputAction.done,
+                        decoration: kpassworddecoration,
                       ),
-                      passwordField,
-                      const SizedBox(
-                        height: 35,
+                      const VerticalHight(value: 25),
+                      Material(
+                        elevation: 5,
+                        color: Colors.redAccent,
+                        borderRadius: BorderRadius.circular(30),
+                        child: MaterialButton(
+                          onPressed: () {
+                            signIn(
+                                emailController.text, passwordController.text);
+                          },
+                          child: const Text(
+                            "Login",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
+                          minWidth: MediaQuery.of(context)
+                              .size
+                              .width, //column size nu anusarich login button width aakum
+                        ),
                       ),
-                      loginButton,
-                      const SizedBox(
-                        height: 15,
-                      ),
+                      const VerticalHight(value: 15),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -91,31 +145,30 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-//   void signIn(String email, String password) async {
-//     if (_formKey.currentState!.validate()) {
-//       //to hide keyboard
-//       FocusScope.of(context).requestFocus(FocusNode());
+  void signIn(String email, String password) async {
+    if (_formKey.currentState!.validate()) {
+      //to hide keyboard
+      FocusScope.of(context).requestFocus(FocusNode());
 
-//       setState(() {
-//         showSpinner = true;
-//       });
-//       await _auth
-//           .signInWithEmailAndPassword(email: email, password: password)
-//           .then(
-//             (uid) => {
-//               Fluttertoast.showToast(msg: "Login Successfull"),
-//               Navigator.of(context).pushReplacement(
-//                 MaterialPageRoute(
-//                   builder: (context) => HomeScreen(),
-//                 ),
-//               ),
-//             },
-//           )
-//           .catchError((e) {
-//         Fluttertoast.showToast(msg: e!.message);
-//       });
-//       showSpinner = false;
-//     }
-//   }
-// }
+      setState(() {
+        showSpinner = true;
+      });
+      await _auth
+          .signInWithEmailAndPassword(email: email, password: password)
+          .then(
+            (uid) => {
+              Fluttertoast.showToast(msg: "Login Successfull"),
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => const TestPage(),
+                ),
+              ),
+            },
+          )
+          .catchError((e) {
+        Fluttertoast.showToast(msg: e!.message);
+      });
+      showSpinner = false;
+    }
+  }
 }
